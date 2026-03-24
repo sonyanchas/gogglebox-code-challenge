@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoggleBox</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="script.js" defer></script>
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+body{
+  font-family:Arial, Helvetica, sans-serif;
+  background:#2E083D;
+  color:white;
+}
+nav{
+  background:#000;
+}
+.container{
+  max-width:1620px;
+  margin:0 auto;
+  padding:0 1.6rem;
+}
+.nav-inner{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:1rem 0;
+}
+.nav-logo{
+  max-width:180px;
+}
+.navsignin{
+  background:none;
+  border:none;
+  color:white;
+  font-size:1rem;
+  cursor:pointer;
+}
+.rimage{
+  width:100%;
+  display:block;
+  object-fit:cover;
+}
+.heroimage{
+  padding-top:1rem;
+  padding-bottom:2rem;
+}
+.heroimg{
+  border-radius:6px;
+}
+.nowplaying{
+  padding: 1rem 1.6rem;
+}
+.nowcontainer{
+  display:flex;
+  flex-direction:column;
+  gap:1rem;
+}
+.featuredshow img{
+  border-radius:6px;
+}
+.sideshows{
+  display:flex;
+  flex-direction:column;
+  gap:1rem;
+}
+.sideshows img{
+  border-radius:6px;
+}
+.schedulesection{
+  padding-top:2rem;
+}
+.sectionlabel{
+  margin-bottom:1.5rem;
+}
+.schedulescroll{
+  overflow-x:auto;
+}
+.scheduletrack{
+  display:flex;
+  gap:2rem;
+  padding-bottom:2rem;
+}
+.scheduletrack img{
+  flex-shrink:0;
+  width:180px;
+  border-radius:6px;
+}
+.scheduleloading{
+  opacity:.6;
+}
+footer{
+  text-align:center;
+  padding:2rem 0 1rem;
+  font-size:.9rem;
+}
+@media (min-width:580px){
+  .nowcontainer{
+    flex-direction: row;
+    gap: 2rem;
+  }
+  .featuredshow,
+  .sideshows{
+    flex: 1;
+  }
+  .featuredshow{
+    display:flex;
+  }
+  .featuredshow img{
+    width:100%;
+  }
+  .sideshows{
+    display:flex;
+    flex-direction:column;
+    gap:2rem;
+  }
+  .sideshows img{
+    flex-grow:1;
+    width:100%;
+  }
+}
+</style>
+</head>
+<body>
+<nav>
+<div class="container nav-inner">
+    <div class="nav-logo">
+    <a href="#">
+    <img src="images/2308_gogglebox_logo.png" alt="Gogglebox Logo" class="rimage">
+    </a>
+</div>
+<button class="navsignin">Sign In</button>
+</div>
+</nav>
+<main>
+    <section class="heroimage container">
+    <picture>
+     <source srcset="images/2308_mobile_hero.jpg" media="(max-width:580px)">
+        <img src="images/2308_desktop_hero.jpg" alt="Hero Image" class="rimage heroimg">
+        </picture>
+    </section>
+        <section class="nowplaying container">
+        <h2>Now Playing</h2>
+    <div class="nowcontainer">
+        <div class="featuredshow">
+            <img src="images/2308_01_now_playing.jpg" alt="Only Murders In The Building" class="rimage">
+    </div>
+<div class="sideshows">
+    <img src="images/2308_02_now_playing.jpg" alt="Yellowjackets" class="rimage">
+    <img src="images/2308_03_now_playing.jpg" alt="Stranger Things Season 4" class="rimage">
+</div>
+</div>
+    </section>
+        <section class="schedulesection container">
+            <p class="sectionlabel">Tomorrow's Schedule</p>
+            <div class="schedulescroll">
+                <div class="scheduletrack" id="scheduleTrack">
+            <p class="scheduleloading" id="scheduleLoading">
+                    Loading tomorrow's schedule…
+</p>
+</div>
+</div>
+</section>
+</main>
+    <footer>
+     <p>&copy; Gogglebox 2023 All Rights Reserved.</p>
+    </footer>
+<script>
+$(document).ready(function(){
+
+    const todayDate = new Date();
+
+    const tomorrowDate = new Date(todayDate);
+    tomorrowDate.setDate(todayDate.getDate() + 1);
+
+    const formatNum = (num)=>String(num).padStart(2,"0");
+
+    const apiDate =
+    tomorrowDate.getFullYear() + "-" +
+    formatNum(tomorrowDate.getMonth()+1) + "-" +
+    formatNum(tomorrowDate.getDate());
+    const apiURL =
+    `https://api.tvmaze.com/schedule?country=US&date=${apiDate}`;
+
+    $.ajax({
+        url: apiURL,
+        method: "GET",
+        dataType: "json"
+    })
+    .done(function(scheduleData){
+        const showsWithImages = scheduleData.filter(function(showItem){
+            return showItem.show && showItem.show.image;
+        });
+            const firstShows = showsWithImages.slice(0,24);
+            const scheduleContainer = $("#scheduleTrack");
+        firstShows.forEach(function(show){
+            const showPoster = $("<img>");
+        showPoster.attr({
+            src: show.show.image.medium,
+            alt:`Poster for ${show.show.name}`,
+            title:`${show.show.name}: ${show.name}`
+            });
+        scheduleContainer.append(showPoster);
+        });
+        $("#scheduleLoading").remove();
+    })
+    .fail(function(request,status,error){
+        console.error("Failed to load schedule:",status,error);
+});
+});
+</script>
+</body>
+</html>
